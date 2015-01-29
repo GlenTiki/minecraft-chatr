@@ -6,11 +6,25 @@ var states = mc.protocol.states;
 var data = JSON.parse(fs.readFileSync('data.json'));
 
 var client = mc.createClient(data);
+console.info('Connecting................')
+
+client.on('connect', function() {
+    var server = data.host + (data.port!==null ? ":" + data.port : "");
+    console.info('Successfully connected to ' + data.host);
+});
+
+client.on([states.PLAY, 0x40], function(packet) {
+    console.info('Kicked for ' + packet.reason);
+    process.exit(1);
+});
+
+client.on('timeout', function(){
+  console.log("THE WORLD IS ENDING! Or you just timed out. idk, i'm just a console script.")
+  process.exit(1);
+})
 
 client.on('chat', function(packet) {
-  // Listen for chat messages and echo them back.
   var jsonMsg = JSON.parse(packet.message);
-  //console.log(jsonMsg)
   jsonMsg.extra.forEach(function(msg){
     process.stdout.write(msg.text);
   });
